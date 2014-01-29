@@ -61,7 +61,7 @@ var _DEFAULT_SPEED_OPTS = {
 };
 
 /*
- * 3rd party function that help to colorize Polylines
+ * 3rd party functions that help to colorize Polylines
  * based on the work of Pavel Shramov and his leaflet-plugins
  * http://github.com/shramov
  * http://github.com/shramov/leaflet-plugins
@@ -351,6 +351,12 @@ L.GPX = L.FeatureGroup.extend({
     return coords;
   },
 
+ /*
+ * function that colorize Polylines
+ * based on the work of Pavel Shramov and his leaflet-plugins
+ * http://github.com/shramov
+ * http://github.com/shramov/leaflet-plugins
+ */
   _speedSplit: function (points, layers, options) {
 	var chunk = Math.floor(points.length / options.speed_options.chunks);
 	if (chunk < 3) chunk = 3;
