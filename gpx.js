@@ -51,7 +51,8 @@ var _DEFAULT_MARKER_OPTS = {
   shadowAnchor: [16, 47]
 };
 var _DEFAULT_POLYLINE_OPTS = {
-	color:'blue'
+  color:'blue',
+  weight:5
 };
 L.GPX = L.FeatureGroup.extend({
   initialize: function(gpx, options) {
