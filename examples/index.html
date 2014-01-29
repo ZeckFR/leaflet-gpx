@@ -40,13 +40,18 @@
 				async: true,
 				max_point_interval: 30000,
 				marker_options: {
-					startIconUrl: 'pin-icon-start.png',
-					endIconUrl:   'pin-icon-end.png',
-					shadowUrl:    'pin-shadow.png',
+					startIconUrl: '../pin-icon-start.png',
+					endIconUrl:   '../pin-icon-end.png',
+					shadowUrl:    '../pin-shadow.png',
 				},
 				polyline_options: {
 					color: "red",
 					weight: 4,
+				},
+				speed_options: {
+					colorized: true,
+					chunks: 100,
+					maxSpeed: 10
 				},
 			}).on('loaded', function(e) {
 				var gpx = e.target;

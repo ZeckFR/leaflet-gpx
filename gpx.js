@@ -54,6 +54,40 @@ var _DEFAULT_POLYLINE_OPTS = {
   color:'blue',
   weight:5
 };
+var _DEFAULT_SPEED_OPTS = {
+  colorized: false,
+  chunks:100,
+  maxSpeed:10
+};
+
+/*
+ * 3rd party function that help to colorize Polylines
+ * based on the work of Pavel Shramov and his leaflet-plugins
+ * http://github.com/shramov
+ * http://github.com/shramov/leaflet-plugins
+ */
+function d2h(d) {
+  var hex = '0123456789ABCDEF';
+  var r = '';
+  d = Math.floor(d);
+  while (d != 0) {
+    r = hex[d % 16] + r;
+    d = Math.floor(d / 16);
+  }
+  while (r.length < 2) r = '0' + r;
+  return r;
+}
+
+function gradient(color) {
+  // First arc (0, PI) in HSV colorspace
+  function f2h(d) { return d2h(256 * d); }
+  if (color < 0) return "#FF0000";
+  else if (color < 1.0/3)  return "#FF" + f2h(3 * color) + "00";
+  else if (color < 2.0/3) return "#" + f2h(2 - 3 * color) + "FF00";
+  else if (color < 1) return "#00FF" + f2h(3 * color - 2);
+  else return "#00FFFF";
+};
+
 L.GPX = L.FeatureGroup.extend({
   initialize: function(gpx, options) {
     options.max_point_interval = options.max_point_interval || _MAX_POINT_INTERVAL_MS;
@@ -63,7 +97,10 @@ L.GPX = L.FeatureGroup.extend({
     options.polyline_options = this._merge_objs(
       _DEFAULT_POLYLINE_OPTS,
       options.polyline_options || {});
-
+    options.speed_options = this._merge_objs(
+      _DEFAULT_SPEED_OPTS,
+      options.speed_options || {});
+	  
     L.Util.setOptions(this, options);
 
     // Base icon class for track pins.
@@ -222,10 +259,13 @@ L.GPX = L.FeatureGroup.extend({
         var coords = this._parse_trkseg(el[i], xml, options, tags[j][1]);
         if (coords.length === 0) continue;
 
-        // add track
-        var l = new L.Polyline(coords, options.polyline_options);
-        this.fire('addline', { line: l })
-        layers.push(l);
+        if (options.speed_options.colorized) {
+		  var speedSplit = this._speedSplit(coords, layers, options);
+        } else {
+          var l = new L.Polyline(coords, options.polyline_options);
+          this.fire('addline', { line: l })
+          layers.push(l);
+        }
 
         if (options.marker_options.startIconUrl) {
           // add start pin
@@ -311,6 +351,30 @@ L.GPX = L.FeatureGroup.extend({
     return coords;
   },
 
+  _speedSplit: function (points, layers, options) {
+	var chunk = Math.floor(points.length / options.speed_options.chunks);
+	if (chunk < 3) chunk = 3;
+	var p = null;
+	for (var i = 0; i < points.length; i += chunk) {
+		var d = 0, t = null;
+		if (i + chunk > points.length) { chunk = points.length - i; }
+		for (var j = 0; j < chunk; j++) {
+			if (p) { d += p.distanceTo(points[i+j]); }
+			p = points[i + j];
+			if (!t) t = p.meta.time;
+		}
+		p = points[i + chunk - 1];
+		t = (p.meta.time - t) / (3600 * 1000);
+		var speed = 0.001 * d / t;
+		//console.info('Dist: ' + d + "; Speed: " + speed);
+		var color = gradient(speed / options.speed_options.maxSpeed);
+		var l = new L.Polyline(points.slice(i, i+chunk+1), {color: color, weight: options.polyline_options.weight, opacity: 1});
+		this.fire('addline', { line: l });
+		layers.push(l);
+		l.bindPopup('Dist: ' + d.toFixed() + "m; Speed: " + speed.toFixed(2) + " km/h");
+	}
+  },
+  
   _dist2d: function(a, b) {
     var R = 6371000;
     var dLat = this._deg2rad(b.lat - a.lat);
