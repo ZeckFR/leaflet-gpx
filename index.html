@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+	<head>
+		<title>leaflet-gpx demo</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<style>
+			html { height: 100% }
+			body { height: 100%; margin: 0; padding: 0 }
+			#map { 
+				width: 800px;
+				height: 480px; 
+			}
+		</style>
+
+		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
+		<script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
+		<script src="gpx.js"></script>
+		</head>
+	<body>
+		<div id="map"></div>
+		<div id="data">
+			<ul>
+				<li>Distance : <span id="distance"></span> m</li>
+				<li>Durée (Déplacement) : <span id="duration"></span></li>
+				<li>Durée (Total) : <span id="duration2"></span></li>
+				<li>Temps au kilomètre : <span id="pace"></span></li>
+				<li>Elévation : <ul>
+					<li>+ : <span id="elv-gain"> m</span></li>
+					<li>- : <span id="elv-loss"> m</span></li>
+					<li>net : <span id="elv-net"></span> m</li></ul></li>
+			</ul>
+		</div>
+		<script type="text/javascript">
+			var url = "data.gpx";
+			
+			var map = L.map('map').setView([48.856578, 2.351828], 13);
+			L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: 'Map data &copy; <a href="http://www.osm.org">OpenStreetMap</a>' }).addTo(map);
+			
+			var track = new L.GPX(url, {
+				async: true,
+				max_point_interval: 30000,
+				marker_options: {
+					startIconUrl: 'pin-icon-start.png',
+					endIconUrl:   'pin-icon-end.png',
+					shadowUrl:    'pin-shadow.png',
+				},
+				polyline_options: {
+					color: "red",
+					weight: 4,
+				},
+			}).on('loaded', function(e) {
+				var gpx = e.target;
+				map.fitBounds(gpx.getBounds());
+				
+				document.getElementById('distance').textContent = gpx.get_distance().toFixed(2);
+				document.getElementById('duration').textContent = gpx.get_duration_string(gpx.get_moving_time());
+				document.getElementById('duration2').textContent = gpx.get_duration_string(gpx.get_total_time());
+				document.getElementById('pace').textContent = gpx.get_duration_string(gpx.get_moving_pace(), true);
+				document.getElementById('elv-gain').textContent = gpx.get_elevation_gain().toFixed(0);
+				document.getElementById('elv-loss').textContent = gpx.get_elevation_loss().toFixed(0);
+				document.getElementById('elv-net').textContent = (gpx.get_elevation_gain() - gpx.get_elevation_loss()).toFixed(0);
+			}).addTo(map);
+		</script>
+	</body>
+</html>
