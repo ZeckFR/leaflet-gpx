@@ -20,14 +20,18 @@
 		<div id="map"></div>
 		<div id="data">
 			<ul>
+				<li>Nom de la trace : <span id="name"></span></li>
 				<li>Distance : <span id="distance"></span> m</li>
 				<li>Durée (Déplacement) : <span id="duration"></span></li>
 				<li>Durée (Total) : <span id="duration2"></span></li>
 				<li>Temps au kilomètre : <span id="pace"></span></li>
-				<li>Elévation : <ul>
-					<li>+ : <span id="elv-gain"> m</span></li>
-					<li>- : <span id="elv-loss"> m</span></li>
-					<li>net : <span id="elv-net"></span> m</li></ul></li>
+				<li>Elévation : 
+					<ul>
+						<li>+ : <span id="elv-gain"> m</span></li>
+						<li>- : <span id="elv-loss"> m</span></li>
+						<li>net : <span id="elv-net"></span> m</li>
+					</ul>
+				</li>
 			</ul>
 		</div>
 		<script type="text/javascript">
@@ -57,6 +61,7 @@
 				var gpx = e.target;
 				map.fitBounds(gpx.getBounds());
 				
+				document.getElementById('name').textContent = gpx.get_name();
 				document.getElementById('distance').textContent = gpx.get_distance().toFixed(2);
 				document.getElementById('duration').textContent = gpx.get_duration_string(gpx.get_moving_time());
 				document.getElementById('duration2').textContent = gpx.get_duration_string(gpx.get_total_time());
