@@ -60,34 +60,6 @@ var _DEFAULT_SPEED_OPTS = {
   maxSpeed:10
 };
 
-/*
- * 3rd party functions that help to colorize Polylines
- * based on the work of Pavel Shramov and his leaflet-plugins
- * http://github.com/shramov
- * http://github.com/shramov/leaflet-plugins
- */
-function d2h(d) {
-  var hex = '0123456789ABCDEF';
-  var r = '';
-  d = Math.floor(d);
-  while (d != 0) {
-    r = hex[d % 16] + r;
-    d = Math.floor(d / 16);
-  }
-  while (r.length < 2) r = '0' + r;
-  return r;
-}
-
-function gradient(color) {
-  // First arc (0, PI) in HSV colorspace
-  function f2h(d) { return d2h(256 * d); }
-  if (color < 0) return "#FF0000";
-  else if (color < 1.0/3)  return "#FF" + f2h(3 * color) + "00";
-  else if (color < 2.0/3) return "#" + f2h(2 - 3 * color) + "FF00";
-  else if (color < 1) return "#00FF" + f2h(3 * color - 2);
-  else return "#00FFFF";
-};
-
 L.GPX = L.FeatureGroup.extend({
   initialize: function(gpx, options) {
     options.max_point_interval = options.max_point_interval || _MAX_POINT_INTERVAL_MS;
@@ -373,7 +345,7 @@ L.GPX = L.FeatureGroup.extend({
 		t = (p.meta.time - t) / (3600 * 1000);
 		var speed = 0.001 * d / t;
 		//console.info('Dist: ' + d + "; Speed: " + speed);
-		var color = gradient(speed / options.speed_options.maxSpeed);
+		var color = this._gradient(speed / options.speed_options.maxSpeed);
 		var l = new L.Polyline(points.slice(i, i+chunk+1), {color: color, weight: options.polyline_options.weight, opacity: 1});
 		this.fire('addline', { line: l });
 		layers.push(l);
@@ -404,5 +376,29 @@ L.GPX = L.FeatureGroup.extend({
 
   _deg2rad: function(deg) {
     return deg * Math.PI / 180;
+  },
+  
+  _d2h: function(d) {
+    var hex = '0123456789ABCDEF';
+    var r = '';
+    d = Math.floor(d);
+    while (d != 0) {
+      r = hex[d % 16] + r;
+      d = Math.floor(d / 16);
+    }
+    while (r.length < 2) r = '0' + r;
+    return r;
+  },
+
+  _f2h: function(d) { 
+    return this._d2h(256 * d); 
+  },
+
+  _gradient: function(color) {
+    if (color < 0) return "#FF0000";
+    else if (color < 1.0/3)  return "#FF" + this._f2h(3 * color) + "00";
+    else if (color < 2.0/3) return "#" + this._f2h(2 - 3 * color) + "FF00";
+    else if (color < 1) return "#00FF" + this._f2h(3 * color - 2);
+    else return "#00FFFF";
   },
 });
